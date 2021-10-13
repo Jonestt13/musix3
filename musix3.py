@@ -34,6 +34,7 @@ class Player(commands.Cog):
         url = pafy.new(song).getbestaudio().url
         ctx.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(
             url)), after=lambda error: self.bot.loop.creat_task(self.check_queue(ctx)))
+        ctx.voice_client.source.volume = 0.5
 
     def setup(self):
         for guild in self.bot.guilds:
@@ -55,3 +56,30 @@ class Player(commands.Cog):
             return await ctx.voice_client.disconnect()
 
         await ctx.send("Not connected to voice channel.")
+
+    @commands.command()
+    async def play(self, ctx, *, song=None):
+        if song is None:
+            return await ctx.send("You must include a song to play.")
+        if ctx.voice_client is None:
+            return await ctx.send("Im not in a voice channal dude")
+        if not ("youtube.com/watch?" in song or "https://youtu.be/" in song):
+            await ctx.send("searching for song, one moment")
+
+            result = await self.search_song(1, song, get_url=True)
+            if result is None:
+                return await ctx.send("I could not find it. Sorry.")
+
+            song = result[0]
+        if ctx.voice_client.source is not None:
+            queue_len = len(self.song_queue[ctx.guild.id])
+
+            if queue_len < 10:
+                self.song_queue[ctx.guild.id].append(song)
+                return await ctx.send(f"I am currently playing a song, this song has been added: {queue_len+1}")
+
+            else:
+                return await ctx.send("Sorry, Queue is full. wait for the next one.")
+
+        await self.play_song(ctx.song)
+        await ctx.send(f"Now Playing: {song}")
