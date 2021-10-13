@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from musix3 import Player
+import config
 
 intents = discord.Intents.default()
 intents.members = True
@@ -14,4 +15,4 @@ async def on_ready():
 
 
 bot.add_cog(Player(bot))
-bot.run("ODk2ODA1MDcwMjQ5ODA3ODky.YWMczg.f-6NLEvv9OjCMm6_DglcCtzclsM")
+bot.run(config.Token)
