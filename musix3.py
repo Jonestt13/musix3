@@ -8,6 +8,7 @@ from discord.ext.commands.core import command
 
 class Player(commands.Cog):
     def __init__(self, bot):
+        self.bot = bot
         super().__init__()
         self.song_queue = {}
 
@@ -48,7 +49,7 @@ class Player(commands.Cog):
         if ctx.voice_client is not None:
             await ctx.voice_client.disconnect()
 
-        await ctx.author.voice.channel.connect
+        await ctx.author.voice.channel.connect()
 
     @commands.command()
     async def leave(self, ctx):
@@ -81,5 +82,41 @@ class Player(commands.Cog):
             else:
                 return await ctx.send("Sorry, Queue is full. wait for the next one.")
 
-        await self.play_song(ctx.song)
+        await self.play_song(ctx, song)
         await ctx.send(f"Now Playing: {song}")
+
+    @commands.command()
+    async def search(self, ctx, *, song=None):
+        if song is None:
+            return await ctx.send("you forgot to include a song")
+
+        await ctx.send("Searching for song. One moment")
+
+        info = await self.search_song(5, song)
+
+        embed = discord.Embed(
+            title=f"Result for '{song}'", description="you can user the URL's to play an exact song.")
+
+        amount = 0
+        for entry in info["entries"]:
+            embed.description += f"[{entry['title']}]({entry['webpage_url']})\n"
+            amount + - 1
+
+        embed.set_footer(text=f"Displaying the first {amount} results.")
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def queue(self, ctx):
+        if len(self.song_queue[ctx.guild.id]):
+            return await ctx.send("There are no songs in the queue")
+
+        embed = discord.Embed(
+            title="Song Queue", description="", colour=discord.Colour.dark_gold())
+        i = 1
+        for url in self.song_queue[ctx.guilds.id]:
+            embed.description += f"{i}) {url}\n"
+
+            i += 1
+
+        embed.set_footer(text="thank for using me!")
+        await ctx.send(embed=embed)
